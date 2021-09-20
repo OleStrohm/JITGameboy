@@ -1,29 +1,71 @@
+mod jit;
 mod mem;
 
-use mem::JitMemory;
+use jit::JitBuilder;
 
-//enum Reg {
-//    A, B, C, D, E, F, H, L,
-//}
+#[allow(dead_code)]
+#[repr(u8)]
+pub enum Reg {
+    BC,
+    DE,
+    HL,
+    SP,
+    AF,
+}
 
-enum Instruction {
-    Assign3,
+impl Reg {
+    pub fn to_mov_op(self) -> u8 {
+        match self {
+            Reg::BC => 0xB8,
+            _ => unimplemented!(),
+        }
+    }
+}
+
+#[allow(dead_code)]
+#[repr(u8)]
+pub enum Dest {
+    B,
+    C,
+    D,
+    E,
+    H,
+    L,
+    HL,
+    A,
+}
+
+impl Dest {
+    pub fn to_mov_op(self) -> u8 {
+        match self {
+            Dest::B => 0xB0,
+            Dest::C => 0xB4,
+            _ => unimplemented!(),
+        }
+    }
+}
+
+pub enum Instruction {
+    Nop,
+    LdRN(Reg, u16),
+    LdDN(Dest, u8),
 }
 
 impl Instruction {
-    pub fn into_asm(self) -> impl Iterator<Item = u8> {
-        IntoIterator::into_iter([0x48_u8, 0xc7, 0xc0, 0x03, 0x00, 0x00, 0x00])
+    pub fn into_asm(self, builder: &mut JitBuilder) {
+        match self {
+            Instruction::Nop => (),
+            Instruction::LdRN(r, n) => builder.make_mov_u16(r, n),
+            Instruction::LdDN(d, n) => builder.make_mov_u8(d, n),
+        };
     }
 }
 
 fn main() {
-    let mut jit = JitMemory::alloc(7).unwrap();
+    let mut builder = JitBuilder::new();
+    Instruction::Nop.into_asm(&mut builder);
+    Instruction::LdRN(Reg::BC, 10).into_asm(&mut builder);
 
-    Instruction::Assign3
-        .into_asm()
-        .enumerate()
-        .for_each(|(i, v)| jit[i] = v);
-
-    let f = unsafe { jit.into_fn() };
+    let f = builder.into_fn();
     println!("{}", f());
 }

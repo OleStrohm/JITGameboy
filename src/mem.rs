@@ -16,6 +16,16 @@ pub struct JitMemory {
 }
 
 impl JitMemory {
+    pub fn from_vec(buffer: Vec<u8>) -> Result<JitMemory, MemError> {
+        let jit_mem = JitMemory::alloc(buffer.len() + 1)?;
+
+        unsafe {
+            std::ptr::copy_nonoverlapping(buffer.as_ptr(), jit_mem.mem, buffer.len());
+        }
+
+        Ok(jit_mem)
+    }
+
     pub fn alloc(size: usize) -> Result<JitMemory, MemError> {
         let size = ((size + PAGE_SIZE - 1) / PAGE_SIZE) * PAGE_SIZE;
 
