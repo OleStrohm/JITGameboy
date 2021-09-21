@@ -49,7 +49,7 @@ impl JitMemory {
         })
     }
 
-    pub unsafe fn into_fn(self) -> fn() -> i64 {
+    pub unsafe fn into_fn(self) -> fn(i64) -> i64 {
         mem::transmute(self.mem)
     }
 }

@@ -11,15 +11,21 @@ impl JitBuilder {
         let mut buffer = Vec::new();
 
         // Zero out everything TODO: reload from previous frame
-        buffer.extend([0x48, 0x31, 0xc0]); // xor rax, rax
+        // buffer.extend([0x48, 0x31, 0xf6]); // xor rax, rax
+        buffer.extend([0x49, 0x89, 0xf8]); // mov rax, rdi
+
 
         JitBuilder { buffer }
     }
 
-    pub fn into_fn(self) -> fn() -> i64 {
+    pub fn into_fn(self) -> fn(i64) -> i64 {
         let mem = JitMemory::from_vec(self.buffer).unwrap();
 
         unsafe { mem.into_fn() }
+    }
+
+    pub fn output(&mut self) {
+
     }
 
     pub fn make_mov_u8(&mut self, d: Dest, n: u8) {

@@ -1,0 +1,19 @@
+GB -> x64 register
+A  -> ah
+F  -> flags?
+B  -> bh
+C  -> bl
+D  -> ch
+E  -> cl
+H  -> dh
+L  -> dl
+
+AF -> ax | flags
+BC -> bx
+DE -> cx
+HL -> dx
+SP -> r8w
+PC -> r9w
+
+output buffer = r10
+

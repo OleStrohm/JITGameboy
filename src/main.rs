@@ -49,6 +49,7 @@ pub enum Instruction {
     Nop,
     LdRN(Reg, u16),
     LdDN(Dest, u8),
+    Output,
 }
 
 impl Instruction {
@@ -57,6 +58,7 @@ impl Instruction {
             Instruction::Nop => (),
             Instruction::LdRN(r, n) => builder.make_mov_u16(r, n),
             Instruction::LdDN(d, n) => builder.make_mov_u8(d, n),
+            Instruction::Output => builder.output(),
         };
     }
 }
@@ -64,8 +66,12 @@ impl Instruction {
 fn main() {
     let mut builder = JitBuilder::new();
     Instruction::Nop.into_asm(&mut builder);
-    Instruction::LdRN(Reg::BC, 10).into_asm(&mut builder);
+    //Instruction::LdDN(Dest::C, 0x12).into_asm(&mut builder);
+    //Instruction::LdDN(Dest::B, 0x34).into_asm(&mut builder);
+
+    let mut log_arr: [u8; 8] = [0; 8];
 
     let f = builder.into_fn();
-    println!("{}", f());
+    println!("{:0X}", f(0x1631));
+    println!("{:?}", log_arr.as_mut_ptr())
 }
