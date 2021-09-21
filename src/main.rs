@@ -2,30 +2,37 @@ mod jit;
 mod mem;
 mod op;
 
+use std::slice::from_raw_parts_mut;
+
 use jit::JitBuilder;
-use op::Instruction;
 use op::Dest;
+use op::Instruction;
+
+use crate::op::Reg;
 
 pub extern "C" fn jit_log(log: *mut u8) {
-    println!(" AF | BC | DE | HL");
+    let log = unsafe { from_raw_parts_mut(log, 8) };
+    println!(" AF | BC | DE | HL |");
     println!(
         "{:02X}{:02X}|{:02X}{:02X}|{:02X}{:02X}|{:02X}{:02X}|",
-        unsafe { log.offset(1).read() },
-        unsafe { log.offset(0).read() },
-        unsafe { log.offset(3).read() },
-        unsafe { log.offset(2).read() },
-        unsafe { log.offset(5).read() },
-        unsafe { log.offset(4).read() },
-        unsafe { log.offset(7).read() },
-        unsafe { log.offset(6).read() },
+        log[1], log[0], log[3], log[2], log[5], log[4], log[7], log[6],
     );
 }
 
 fn main() {
     let mut builder = JitBuilder::new();
-    Instruction::LdDN(Dest::B, 0x12).into_asm(&mut builder);
-    Instruction::LdDN(Dest::C, 0x34).into_asm(&mut builder);
+    Instruction::LdDN(Dest::A, 0x11).into_asm(&mut builder);
+    Instruction::LdDN(Dest::B, 0x22).into_asm(&mut builder);
+    Instruction::LdDN(Dest::C, 0x33).into_asm(&mut builder);
+    Instruction::LdDN(Dest::D, 0x44).into_asm(&mut builder);
+    Instruction::LdDN(Dest::E, 0x55).into_asm(&mut builder);
+    Instruction::LdDN(Dest::H, 0x66).into_asm(&mut builder);
+    Instruction::LdDN(Dest::L, 0x77).into_asm(&mut builder);
+    Instruction::LdRN(Reg::BC, 0xBCCB).into_asm(&mut builder);
+    Instruction::LdRN(Reg::DE, 0xDEED).into_asm(&mut builder);
+    Instruction::LdRN(Reg::HL, 0x8998).into_asm(&mut builder);
     Instruction::Log.into_asm(&mut builder);
+    //Instruction::Log.into_asm(&mut builder);
 
     let mut log: [u8; 8] = [0; 8];
 
