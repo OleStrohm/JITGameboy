@@ -17,7 +17,7 @@ pub struct JitMemory {
 
 impl JitMemory {
     pub fn from_vec(buffer: Vec<u8>) -> Result<JitMemory, MemError> {
-        let jit_mem = JitMemory::alloc(buffer.len() + 1)?;
+        let jit_mem = JitMemory::alloc(buffer.len())?;
 
         unsafe {
             std::ptr::copy_nonoverlapping(buffer.as_ptr(), jit_mem.mem, buffer.len());

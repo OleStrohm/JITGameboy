@@ -2,7 +2,7 @@ use std::mem;
 
 use crate::mem::JitMemory;
 
-use super::{Dest, Reg};
+use crate::op::{Dest, Reg};
 
 pub struct JitBuilder {
     buffer: Vec<u8>,
@@ -14,6 +14,7 @@ impl JitBuilder {
 
         // Zero out everything
         // TODO: reload from previous frame
+        buffer.extend([0x55]); // push rbp
         buffer.extend([0x49, 0x89, 0xfa]); // mov r10, rdi
         buffer.extend([0x48, 0x31, 0xc0]); // xor rax, rax
         buffer.extend([0x48, 0x31, 0xdb]); // xor rbx, rbx
@@ -23,7 +24,9 @@ impl JitBuilder {
         JitBuilder { buffer }
     }
 
-    pub fn into_fn(self) -> fn(*mut u8, extern "C" fn(*mut u8)) -> i64 {
+    pub fn into_fn(mut self) -> fn(*mut u8, extern "C" fn(*mut u8)) -> i64 {
+        self.buffer.extend([0x5d]); // pop rbp
+        self.buffer.extend([0xc3]); // ret
         let mem = JitMemory::from_vec(self.buffer).unwrap();
 
         unsafe { mem::transmute(mem.into_ptr()) }
