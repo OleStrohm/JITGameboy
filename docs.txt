@@ -17,3 +17,4 @@ PC -> r9w
 
 output buffer = r10
 
+calling convention order: rdi, rsi, rdx, rcx, r8, r9

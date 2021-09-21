@@ -38,8 +38,8 @@ pub enum Dest {
 impl Dest {
     pub fn to_mov_op(self) -> u8 {
         match self {
-            Dest::B => 0xB0,
-            Dest::C => 0xB4,
+            Dest::B => 0xB7,
+            Dest::C => 0xB3,
             _ => unimplemented!(),
         }
     }
@@ -49,7 +49,7 @@ pub enum Instruction {
     Nop,
     LdRN(Reg, u16),
     LdDN(Dest, u8),
-    Output,
+    Log,
 }
 
 impl Instruction {
@@ -58,20 +58,38 @@ impl Instruction {
             Instruction::Nop => (),
             Instruction::LdRN(r, n) => builder.make_mov_u16(r, n),
             Instruction::LdDN(d, n) => builder.make_mov_u8(d, n),
-            Instruction::Output => builder.output(),
+            Instruction::Log => builder.log(),
         };
     }
 }
 
+pub extern "C" fn jit_log(_log: *mut u8) {
+    //println!(" AF | BC | DE | HL");
+    //println!(
+    //    "{:02X}{:02X}|{:02X}{:02X}|{:02X}{:02X}|{:02X}{:02X}|",
+    //    unsafe { log.offset(1).read() },
+    //    unsafe { log.offset(0).read() },
+    //    unsafe { log.offset(3).read() },
+    //    unsafe { log.offset(2).read() },
+    //    unsafe { log.offset(5).read() },
+    //    unsafe { log.offset(4).read() },
+    //    unsafe { log.offset(7).read() },
+    //    unsafe { log.offset(6).read() },
+    //)
+
+    //println!("hi");
+    let a = unsafe { _log.read() };
+}
+
 fn main() {
     let mut builder = JitBuilder::new();
-    Instruction::Nop.into_asm(&mut builder);
-    //Instruction::LdDN(Dest::C, 0x12).into_asm(&mut builder);
-    //Instruction::LdDN(Dest::B, 0x34).into_asm(&mut builder);
+    Instruction::LdDN(Dest::B, 0x12).into_asm(&mut builder);
+    Instruction::LdDN(Dest::C, 0x34).into_asm(&mut builder);
+    Instruction::Log.into_asm(&mut builder);
 
-    let mut log_arr: [u8; 8] = [0; 8];
+    let mut log: [u8; 8] = [0; 8];
 
-    let f = builder.into_fn();
-    println!("{:0X}", f(0x1631));
-    println!("{:?}", log_arr.as_mut_ptr())
+    let fun = builder.into_fn();
+    println!("{:0X}", fun(log.as_mut_ptr(), jit_log));
+    jit_log(log.as_mut_ptr());
 }

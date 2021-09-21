@@ -1,5 +1,5 @@
 use std::{
-    mem::{self, MaybeUninit},
+    mem::MaybeUninit,
     ops::{Index, IndexMut},
 };
 
@@ -49,8 +49,8 @@ impl JitMemory {
         })
     }
 
-    pub unsafe fn into_fn(self) -> fn(i64) -> i64 {
-        mem::transmute(self.mem)
+    pub fn into_ptr(self) -> *mut u8 {
+        self.mem
     }
 }
 
