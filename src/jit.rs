@@ -15,6 +15,10 @@ impl JitBuilder {
         // Zero out everything
         // TODO: reload from previous frame
         buffer.extend([0x55]); // push rbp
+        buffer.extend([0x53]); // push rbp
+        buffer.extend([0x57]); // push rbp
+        buffer.extend([0x56]); // push rbp
+        buffer.extend([0x54]); // push rbp
         buffer.extend([0x49, 0x89, 0xfa]); // mov r10, rdi
         buffer.extend([0x48, 0x31, 0xc0]); // xor rax, rax
         buffer.extend([0x48, 0x31, 0xdb]); // xor rbx, rbx
@@ -33,6 +37,10 @@ impl JitBuilder {
             0x66, 0x41, 0x89, 0x52, 0x06, // mov [r10+6], dx
         ]);
         self.buffer.extend([0x48, 0x31, 0xc0]); // xor rax, rax
+        self.buffer.extend([0x5c]); // pop rbp
+        self.buffer.extend([0x5e]); // pop rbp
+        self.buffer.extend([0x5f]); // pop rbp
+        self.buffer.extend([0x5b]); // pop rbp
         self.buffer.extend([0x5d]); // pop rbp
         self.buffer.extend([0xc3]); // ret
         let mem = JitMemory::from_vec(self.buffer).unwrap();
@@ -48,7 +56,19 @@ impl JitBuilder {
             0x66, 0x41, 0x89, 0x4a, 0x04, // mov [r10+4], cx
             0x66, 0x41, 0x89, 0x52, 0x06, // mov [r10+6], dx
             0x4c, 0x89, 0xd7, // mov rdi, r10
+            0x50, // push rbp
+            0x53, // push rbp
+            0x51, // push rbp
+            0x52, // push rbp
+            0x56, // push rbp
+            0x41, 0x52, // push rbp
             0xff, 0xd6, // call rsi (jit_log)
+            0x41, 0x5a, // push rbp
+            0x5e, // pop rbp
+            0x5a, // pop rbp
+            0x59, // pop rbp
+            0x5b, // pop rbp
+            0x58, // pop rbp
         ]);
     }
 

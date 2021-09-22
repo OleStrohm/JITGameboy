@@ -28,14 +28,12 @@ fn main() {
     Instruction::LdDN(Dest::E, 0x55).into_asm(&mut builder);
     Instruction::LdDN(Dest::H, 0x66).into_asm(&mut builder);
     Instruction::LdDN(Dest::L, 0x77).into_asm(&mut builder);
-    Instruction::LdRN(Reg::BC, 0xBCCB).into_asm(&mut builder);
-    Instruction::LdRN(Reg::DE, 0xDEED).into_asm(&mut builder);
-    Instruction::LdRN(Reg::HL, 0x8998).into_asm(&mut builder);
     Instruction::Log.into_asm(&mut builder);
-    //Instruction::Log.into_asm(&mut builder);
+    Instruction::LdDN(Dest::A, 0x0).into_asm(&mut builder);
 
     let mut log: [u8; 8] = [0; 8];
 
     let fun = builder.into_fn();
     println!("{:0X}", fun(log.as_mut_ptr(), jit_log));
+    jit_log(log.as_mut_ptr());
 }
