@@ -2,8 +2,6 @@ use std::mem;
 
 use crate::mem::JitMemory;
 
-use crate::op::{Dest, Reg};
-
 pub struct JitBuilder {
     buffer: Vec<u8>,
 }
@@ -24,6 +22,8 @@ impl JitBuilder {
         buffer.extend([0x48, 0x31, 0xdb]); // xor rbx, rbx
         buffer.extend([0x48, 0x31, 0xc9]); // xor rcx, rcx
         buffer.extend([0x48, 0x31, 0xd2]); // xor rdx, rdx
+        buffer.extend([0xf8]); // clc
+
 
         JitBuilder { buffer }
     }
@@ -71,24 +71,10 @@ impl JitBuilder {
             0x58, // pop rbp
         ]);
     }
+}
 
-    pub fn make_mov_u8(&mut self, d: Dest, n: u8) {
-        match d {
-            Dest::HL => unimplemented!("Need to offset by memory location"),
-            d => self.buffer.extend([/*mov r*/ 0xb0 + d as u8, n]),
-        }
-    }
-
-    pub fn make_mov_u16(&mut self, r: Reg, n: u16) {
-        let [n0, n1] = n.to_le_bytes();
-
-        // mov r, n16
-        match r {
-            Reg::SP => unimplemented!(),
-            Reg::AF => unimplemented!(),
-            r => self
-                .buffer
-                .extend([0x66, /*mov r*/ 0xB8 + r as u8, /*n*/ n0, n1]),
-        }
+impl Extend<u8> for JitBuilder {
+    fn extend<T: IntoIterator<Item = u8>>(&mut self, iter: T) {
+        self.buffer.extend(iter);
     }
 }
