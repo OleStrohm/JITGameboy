@@ -24,11 +24,10 @@ impl JitBuilder {
         buffer.extend([0x48, 0x31, 0xd2]); // xor rdx, rdx
         buffer.extend([0xf8]); // clc
 
-
         JitBuilder { buffer }
     }
 
-    pub fn into_fn(mut self) -> fn(*mut u8, extern "C" fn(*mut u8)) -> i64 {
+    pub fn into_fn(mut self) -> fn(*mut u8) -> i64 {
         // store registers
         self.buffer.extend([
             0x66, 0x41, 0x89, 0x02, // mov [r10], ax
@@ -48,8 +47,7 @@ impl JitBuilder {
         unsafe { mem::transmute(mem.into_ptr()) }
     }
 
-    pub fn log(&mut self) {
-        #[rustfmt::skip]
+    pub fn call_fn(&mut self, f: extern "C" fn(*mut u8)) {
         self.buffer.extend([
             0x66, 0x41, 0x89, 0x02, // mov [r10], ax
             0x66, 0x41, 0x89, 0x5a, 0x02, // mov [r10+2], bx
@@ -62,7 +60,11 @@ impl JitBuilder {
             0x52, // push rbp
             0x56, // push rbp
             0x41, 0x52, // push rbp
-            0xff, 0xd6, // call rsi (jit_log)
+            0x48, 0xbe, // mov rsi
+        ]);
+        self.buffer.extend((f as u64).to_le_bytes());
+        self.buffer.extend([
+            0xff, 0xd6, // call rsi (f)
             0x41, 0x5a, // push rbp
             0x5e, // pop rbp
             0x5a, // pop rbp

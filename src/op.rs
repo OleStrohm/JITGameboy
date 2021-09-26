@@ -1,6 +1,17 @@
 #![allow(dead_code)]
 
+use std::slice::from_raw_parts_mut;
+
 use crate::jit::JitBuilder;
+
+pub extern "C" fn log(log: *mut u8) {
+    let log = unsafe { from_raw_parts_mut(log, 8) };
+    println!(" AF | BC | DE | HL |");
+    println!(
+        "{:02X}{:02X}|{:02X}{:02X}|{:02X}{:02X}|{:02X}{:02X}|",
+        log[1], log[0], log[3], log[2], log[5], log[4], log[7], log[6],
+    );
+}
 
 pub enum Op {
     Nop,
@@ -83,7 +94,7 @@ impl Op {
                     (Dir::Right, UseCarry::WithoutCarry) => 0xcc,
                 },
             ]),
-            Op::Log => builder.log(),
+            Op::Log => builder.call_fn(log),
         };
     }
 }
